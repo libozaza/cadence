@@ -35,11 +35,12 @@ uIOhook.on('keyup', (event) => {
 
   if (p.flightTime === null || p.latencyTime === null) return;
 
+  const NS_TO_MS = 1_000_000;
   const evt = {
     timestamp: new Date().toISOString(),
-    hold_time: event.time - p.keyDownTime,
-    flight_time: p.flightTime,
-    latency_time: p.latencyTime,
+    hold_time: (event.time - p.keyDownTime) / NS_TO_MS,
+    flight_time: p.flightTime / NS_TO_MS,
+    latency_time: p.latencyTime / NS_TO_MS,
   };
   console.log('[keystroke]', evt);
   addEvent(evt);

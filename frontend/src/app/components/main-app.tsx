@@ -205,23 +205,6 @@ export function MainApp() {
           </button>
 
           <button
-            onClick={() => setActiveView("care")}
-            className={`w-full flex items-center justify-between px-4 py-4 rounded-lg text-lg transition-colors relative ${
-              activeView === "care"
-                ? "bg-sidebar-accent text-foreground"
-                : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
-            }`}
-          >
-            {activeView === "care" && (
-              <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-accent rounded-r" />
-            )}
-            <div className="flex items-center gap-3">
-              <MapPin className="w-6 h-6" strokeWidth={1.5} />
-              <span>Find Care</span>
-            </div>
-          </button>
-
-          <button
             onClick={() => setActiveView("settings")}
             className={`w-full flex items-center justify-between px-4 py-4 rounded-lg text-lg transition-colors relative ${
               activeView === "settings"

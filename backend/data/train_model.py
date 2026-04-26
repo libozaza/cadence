@@ -8,7 +8,7 @@ from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
 # 1. Load dataset
-df = # File Path
+df = pd.read_csv("updated_summary (1).csv")
 
 # 2. Features (columns 2–7) and target (column 8)
 X = df.iloc[:, 1:7]

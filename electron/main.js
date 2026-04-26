@@ -1,6 +1,7 @@
 const { app, BrowserWindow } = require('electron');
 const { spawn } = require('child_process');
 const path = require('path');
+const os = require('os');
 const { startCapture, stopCapture } = require('./keystrokes');
 const { flush, startFlushTimer } = require('./sender');
 
@@ -37,7 +38,7 @@ app.whenReady().then(async () => {
   startCapture();
 
   const win = new BrowserWindow({ width: 1200, height: 800 });
-  win.loadURL('http://localhost:3000');
+  win.loadURL(`http://localhost:3000?user_id=${encodeURIComponent(os.hostname())}`);
 });
 
 app.on('before-quit', async (event) => {

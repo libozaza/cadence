@@ -8,7 +8,10 @@ let apiProcess = null;
 
 function spawnBackend() {
   const backendDir = path.join(__dirname, '..', 'backend');
-  const venvPython = path.join(__dirname, '..', 'venv', 'Scripts', 'python.exe');
+  const isWin = process.platform === 'win32';
+  const venvPython = isWin
+    ? path.join(backendDir, 'venv', 'Scripts', 'python.exe')
+    : path.join(backendDir, 'venv', 'bin', 'python');
   apiProcess = spawn(venvPython, ['-m', 'uvicorn', 'main:app', '--port', '8000'], {
     cwd: backendDir,
     stdio: 'inherit',

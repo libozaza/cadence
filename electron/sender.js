@@ -1,8 +1,9 @@
+const os = require('os');
+
 const BATCH_SIZE = 50;
 const FLUSH_INTERVAL_MS = 30000;
 
-// TODO: Replace with real user identity system before distributing to participants
-const USER_ID = 'TESTUSER01';
+const USER_ID = os.hostname();
 
 let buffer = [];
 let flushTimer = null;

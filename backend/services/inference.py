@@ -4,13 +4,15 @@ import joblib
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH = os.path.normpath(os.path.join(BASE_DIR, "..", "svm_model.pkl"))
 
+# Must match training column order: df.iloc[:, 1:7] from updated_summary.csv
+# Training columns: Hold_time_mean, Latency_time_mean, Flight_time_mean, Hold_time_std, Latency_time_std, Flight_time_std
 FEATURE_ORDER = [
     "hold_time_mean",
-    "hold_time_sd",
-    "flight_time_mean",
-    "flight_time_sd",
     "latency_time_mean",
+    "flight_time_mean",
+    "hold_time_sd",
     "latency_time_sd",
+    "flight_time_sd",
 ]
 
 _model = None

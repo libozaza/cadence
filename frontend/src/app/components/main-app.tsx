@@ -6,6 +6,7 @@ import {
   Lock,
   RefreshCw,
 } from "lucide-react";
+import { OnboardingModal } from "./onboarding-modal";
 import {
   LineChart,
   Line,
@@ -45,40 +46,40 @@ function toChartData(
   }));
 }
 
-function getFeatureMetrics(latest: DailyFeature | null) {
-  if (!latest)
-    return [
-      { label: "Hold time variability", value: 0, status: "No data" },
-      { label: "Flight time variance", value: 0, status: "No data" },
-      { label: "Inter-key consistency", value: 0, status: "No data" },
-    ];
-  const normalize = (sd: number, mean: number) =>
-    Math.min(100, Math.round((sd / mean) * 100));
-  const holdVar = normalize(latest.hold_time_sd, latest.hold_time_mean);
-  const flightVar = normalize(latest.flight_time_sd, latest.flight_time_mean);
-  const latencyVar = normalize(
-    latest.latency_time_sd,
-    latest.latency_time_mean,
-  );
-  const label = (v: number) => (v < 20 ? "Typical" : "Elevated");
+function getFeatureMetrics(features: DailyFeature[]) {
+  const noData = [
+    { label: "Hold time",    value: 0, display: "No data", elevated: false },
+    { label: "Flight time",  value: 0, display: "No data", elevated: false },
+    { label: "Latency time", value: 0, display: "No data", elevated: false },
+  ];
+  if (features.length === 0) return noData;
+
+  const avg = (vals: number[]) => vals.reduce((a, b) => a + b, 0) / vals.length;
+  const holdMs    = Math.round(avg(features.map((f) => f.hold_time_mean)));
+  const flightMs  = Math.round(avg(features.map((f) => f.flight_time_mean)));
+  const latencyMs = Math.round(avg(features.map((f) => f.latency_time_mean)));
+
+  // Bar fill: normalize to a sensible max (capped at 100%)
+  const norm = (ms: number, max: number) => Math.min(100, Math.round((ms / max) * 100));
+
+  // Thresholds derived from population data (non-PD mean as reference)
   return [
-    { label: "Hold time variability", value: holdVar, status: label(holdVar) },
-    {
-      label: "Flight time variance",
-      value: flightVar,
-      status: label(flightVar),
-    },
-    {
-      label: "Inter-key consistency",
-      value: latencyVar,
-      status: label(latencyVar),
-    },
+    { label: "Hold time",    value: norm(holdMs, 250),    display: `${holdMs} ms`,    elevated: holdMs    > 125 },
+    { label: "Flight time",  value: norm(flightMs, 500),  display: `${flightMs} ms`,  elevated: flightMs  > 260 },
+    { label: "Latency time", value: norm(latencyMs, 600), display: `${latencyMs} ms`, elevated: latencyMs > 260 },
   ];
 }
 
 export function MainApp() {
   const [activeView, setActiveView] = React.useState("dashboard");
   const [timeRange, setTimeRange] = React.useState("1M");
+  const [showOnboarding, setShowOnboarding] = React.useState(false);
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+
+  const navigateTo = (view: string) => {
+    setActiveView(view);
+    if (view === "dashboard") scrollRef.current?.scrollTo({ top: 0 });
+  };
 
   const [features, setFeatures] = React.useState<DailyFeature[]>([]);
   const [riskScore, setRiskScore] = React.useState<number | null>(null);
@@ -155,7 +156,7 @@ export function MainApp() {
     500,
     "latency",
   );
-  const featureMetrics = getFeatureMetrics(latestFeature);
+  const featureMetrics = getFeatureMetrics(features);
 
   const scoreLabel = deviationScore === null ? "—" : `${deviationScore}%`;
 
@@ -185,7 +186,7 @@ export function MainApp() {
 
         <nav className="flex-1 p-3 space-y-2">
           <button
-            onClick={() => setActiveView("dashboard")}
+            onClick={() => navigateTo("dashboard")}
             className={`w-full flex items-center justify-between px-4 py-4 rounded-lg text-lg transition-colors relative ${
               activeView === "dashboard"
                 ? "bg-sidebar-accent text-foreground"
@@ -205,7 +206,7 @@ export function MainApp() {
           </button>
 
           <button
-            onClick={() => setActiveView("settings")}
+            onClick={() => navigateTo("settings")}
             className={`w-full flex items-center justify-between px-4 py-4 rounded-lg text-lg transition-colors relative ${
               activeView === "settings"
                 ? "bg-sidebar-accent text-foreground"
@@ -224,7 +225,7 @@ export function MainApp() {
 
         <div className="p-4 border-t border-border space-y-3">
           <button
-            onClick={() => setActiveView("care")}
+            onClick={() => navigateTo("care")}
             className="w-full flex items-center justify-center gap-2 px-4 py-4 bg-accent text-accent-foreground rounded-lg text-[17px] hover:opacity-90 transition-opacity"
           >
             <MapPin className="w-5 h-5" strokeWidth={1.5} />
@@ -266,7 +267,7 @@ export function MainApp() {
           </div>
         </div>
 
-        <div className="flex-1 p-6 overflow-auto">
+        <div ref={scrollRef} className="flex-1 p-6 overflow-auto">
           {activeView === "dashboard" && (
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
@@ -348,14 +349,14 @@ export function MainApp() {
                         </div>
                         <span
                           className={`text-sm px-3 py-1 rounded flex-shrink-0 ${
-                            metric.status === "Typical"
-                              ? "bg-success/10 text-success"
-                              : metric.status === "No data"
-                                ? "bg-muted/30 text-muted-foreground"
-                                : "bg-warning/10 text-warning"
+                            metric.display === "No data"
+                              ? "bg-muted/30 text-muted-foreground"
+                              : metric.elevated
+                                ? "bg-warning/10 text-warning"
+                                : "bg-success/10 text-success"
                           }`}
                         >
-                          {metric.status}
+                          {metric.display}
                         </span>
                       </div>
                     ))}
@@ -755,6 +756,15 @@ export function MainApp() {
                     </div>
                   </div>
                 </div>
+                <div className="pb-10 border-b border-border">
+                  <h3 className="text-2xl mb-8">Onboarding</h3>
+                  <button
+                    onClick={() => setShowOnboarding(true)}
+                    className="w-full py-5 border border-border text-foreground rounded-xl text-lg hover:bg-muted/30 transition-colors"
+                  >
+                    Show onboarding
+                  </button>
+                </div>
                 <div>
                   <h3 className="text-2xl mb-8">Privacy & Data</h3>
                   <div className="space-y-5">
@@ -791,6 +801,9 @@ export function MainApp() {
           )}
         </div>
       </div>
+      {showOnboarding && (
+        <OnboardingModal onComplete={() => { setShowOnboarding(false); navigateTo("dashboard"); }} />
+      )}
     </div>
   );
 }

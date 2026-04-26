@@ -18,7 +18,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
 
   return (
     <div className="fixed inset-0 bg-background/90 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="w-[480px] bg-card rounded-xl border border-border p-10">
+      <div className="w-[600px] bg-card rounded-xl border border-border p-12">
         {/* Step indicators */}
         <div className="flex items-center justify-center gap-3 mb-10">
           {[0, 1, 2].map((i) => (

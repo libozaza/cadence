@@ -33,4 +33,4 @@ def predict(features: dict) -> float:
         return 0.0
 
     values = [[features[f] for f in FEATURE_ORDER]]
-    return float(_model.predict(values)[0])
+    return float(_model.predict_proba(values)[0][1])

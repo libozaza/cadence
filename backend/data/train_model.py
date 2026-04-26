@@ -25,7 +25,7 @@ X_train, X_test, y_train, y_test = train_test_split(
 # 4. Pipeline (scaling + SVM)
 pipeline = Pipeline([
     ("scaler", StandardScaler()),
-    ("svm", SVC(class_weight="balanced"))
+    ("svm", SVC(class_weight="balanced", probability=True))
 ])
 
 # 5. Grid search (find best balanced model)
@@ -63,6 +63,6 @@ print("\nClassification Report:")
 print(classification_report(y_test, y_pred, zero_division=0))
 
 # 9. SAVE (download) model + scaler
-joblib.dump(best_model, r"C:\Users\cnth1\Downloads\svm_model.pkl")
+joblib.dump(best_model, r"../svm_model.pkl")
 
-print("\nModel saved to: C:\\Users\\cnth1\\Downloads\\svm_model.pkl")
+print("\nModel saved to: ../svm_model.pkl")

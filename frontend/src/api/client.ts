@@ -53,3 +53,18 @@ export async function triggerPredict(userId: string): Promise<Prediction> {
   if (!res.ok) throw new Error('No daily features available yet');
   return res.json();
 }
+
+export async function runAggregationToday(): Promise<void> {
+  await fetch(`${BASE_URL}/admin/run-aggregation`, { method: 'POST' });
+}
+
+export async function clearAllData(userId: string): Promise<void> {
+  await fetch(`${BASE_URL}/admin/clear-data?user_id=${encodeURIComponent(userId)}`, { method: 'DELETE' });
+}
+
+export async function fetchTodayCount(userId: string): Promise<number> {
+  const res = await fetch(`${BASE_URL}/admin/today/count?user_id=${encodeURIComponent(userId)}`);
+  if (!res.ok) return 0;
+  const data = await res.json();
+  return data.keystrokes_today as number;
+}

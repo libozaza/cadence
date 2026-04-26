@@ -106,6 +106,24 @@ def get_raw_keystrokes_for_date(user_id: str, target_date: date) -> list[dict]:
     return [dict(r) for r in rows]
 
 
+def get_raw_keystroke_count_today(user_id: str) -> int:
+    today = date.today().isoformat()
+    with get_conn() as conn:
+        row = conn.execute(
+            "SELECT COUNT(*) AS cnt FROM raw_keystrokes WHERE user_id=? AND event_date=?",
+            (user_id, today),
+        ).fetchone()
+    return row["cnt"]
+
+
+def delete_all_data(user_id: str) -> None:
+    with get_conn() as conn:
+        conn.execute("DELETE FROM raw_keystrokes WHERE user_id=?", (user_id,))
+        conn.execute("DELETE FROM daily_features WHERE user_id=?", (user_id,))
+        conn.execute("DELETE FROM predictions WHERE user_id=?", (user_id,))
+        conn.execute("DELETE FROM calibration WHERE user_id=?", (user_id,))
+
+
 def get_all_users() -> list[str]:
     with get_conn() as conn:
         rows = conn.execute(

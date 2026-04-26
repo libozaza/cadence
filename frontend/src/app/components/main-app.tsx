@@ -1,7 +1,7 @@
 import React from 'react';
-import { LayoutDashboard, MapPin, Settings, Download, Lock } from 'lucide-react';
+import { LayoutDashboard, MapPin, Settings, Download, Lock, RefreshCw } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Area } from 'recharts';
-import { fetchHistory, fetchCalibrationStatus, triggerPredict, DailyFeature, CalibrationStatus } from '../../api/client';
+import { fetchHistory, triggerPredict, runAggregationToday, fetchTodayCount, clearAllData, DailyFeature } from '../../api/client';
 
 function getUserId(): string {
   const params = new URLSearchParams(window.location.search);
@@ -42,35 +42,48 @@ export function MainApp() {
 
   const [features, setFeatures] = React.useState<DailyFeature[]>([]);
   const [riskScore, setRiskScore] = React.useState<number | null>(null);
-  const [calibration, setCalibration] = React.useState<CalibrationStatus | null>(null);
+
   const [loading, setLoading] = React.useState(true);
+  const [refreshing, setRefreshing] = React.useState(false);
+  const [rawKeystrokesToday, setRawKeystrokesToday] = React.useState(0);
 
   const userId = React.useMemo(() => getUserId(), []);
 
-  React.useEffect(() => {
-    async function load() {
-      try {
-        const [history, cal] = await Promise.all([
-          fetchHistory(userId),
-          fetchCalibrationStatus(userId),
-        ]);
-        setFeatures(history.daily_features);
-        setCalibration(cal);
-
-        // Use most recent stored prediction, or trigger a fresh one
-        if (history.predictions.length > 0) {
-          setRiskScore(history.predictions[history.predictions.length - 1].risk_score);
-        } else if (history.daily_features.length > 0) {
-          const pred = await triggerPredict(userId);
-          setRiskScore(pred.risk_score);
-        }
-      } catch {
-        // Backend not reachable — UI stays in loading/no-data state
-      } finally {
-        setLoading(false);
-      }
+  async function load(isRefresh = false) {
+    if (isRefresh) {
+      setRefreshing(true);
+      await runAggregationToday();
     }
-    load();
+    try {
+      const [history, todayCount] = await Promise.all([
+        fetchHistory(userId),
+        fetchTodayCount(userId),
+      ]);
+      setFeatures(history.daily_features);
+      setRawKeystrokesToday(todayCount);
+
+      if (history.predictions.length > 0) {
+        setRiskScore(history.predictions[history.predictions.length - 1].risk_score);
+      } else if (history.daily_features.length > 0) {
+        const pred = await triggerPredict(userId);
+        setRiskScore(pred.risk_score);
+      }
+    } catch {
+      // Backend not reachable — UI stays in loading/no-data state
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }
+
+  React.useEffect(() => { load(); }, [userId]);
+
+  React.useEffect(() => {
+    const interval = setInterval(async () => {
+      const count = await fetchTodayCount(userId);
+      setRawKeystrokesToday(count);
+    }, 10000);
+    return () => clearInterval(interval);
   }, [userId]);
 
   const today = new Date().toISOString().slice(0, 10);
@@ -80,13 +93,6 @@ export function MainApp() {
   const totalKeystrokes = features.reduce((sum, f) => sum + f.n_keystrokes, 0);
 
   const deviationScore = riskScore !== null ? Math.round(riskScore * 100) : null;
-
-  const getBaselineStatus = () => {
-    if (!calibration) return { complete: false, label: 'Loading baseline…' };
-    if (calibration.calibrated) return { complete: true, label: 'Reliable baseline complete' };
-    return { complete: false, label: `Baseline: ${calibration.days_collected} / ${calibration.days_required} days` };
-  };
-  const baselineStatus = getBaselineStatus();
 
   const holdTimeData = toChartData(features, 'hold_time_mean', 50, 150, 'hold');
   const flightTimeData = toChartData(features, 'flight_time_mean', 100, 400, 'flight');
@@ -197,17 +203,15 @@ export function MainApp() {
             {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-[15px] text-foreground">Keystrokes today: {keystrokesToday.toLocaleString()}</span>
-            {baselineStatus.complete ? (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-success/10 rounded-full">
-                <svg className="w-4 h-4 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                <span className="text-[15px] text-success">{baselineStatus.label}</span>
-              </div>
-            ) : (
-              <span className="text-[15px] text-muted-foreground">{baselineStatus.label}</span>
-            )}
+            <button
+              onClick={() => load(true)}
+              disabled={refreshing}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors disabled:opacity-50"
+            >
+              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} strokeWidth={1.5} />
+              <span className="text-[15px]">Refresh</span>
+            </button>
+            <span className="text-[15px] text-foreground">Keystrokes today: {rawKeystrokesToday.toLocaleString()}</span>
           </div>
         </div>
 
@@ -453,7 +457,17 @@ export function MainApp() {
                   <div className="space-y-5">
                     <button className="w-full py-5 border border-border text-foreground rounded-xl text-lg hover:bg-muted/30 transition-colors">View privacy information</button>
                     <div>
-                      <button className="w-full py-5 border border-destructive text-destructive rounded-xl text-lg hover:bg-destructive/10 transition-colors">Clear all my data</button>
+                      <button
+                        onClick={async () => {
+                          if (window.confirm('This will permanently delete all your keystroke data and scores. This cannot be undone.')) {
+                            await clearAllData(userId);
+                            setFeatures([]);
+                            setRiskScore(null);
+                            setRawKeystrokesToday(0);
+                          }
+                        }}
+                        className="w-full py-5 border border-destructive text-destructive rounded-xl text-lg hover:bg-destructive/10 transition-colors"
+                      >Clear all my data</button>
                       <p className="text-[15px] text-muted-foreground mt-3 text-center leading-relaxed">This will permanently delete all keystroke data and scores stored on your device. This cannot be undone.</p>
                     </div>
                   </div>

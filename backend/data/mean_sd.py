@@ -2,7 +2,7 @@ import pandas as pd
 import glob
 import os
 
-folder_path = // Insert Path
+folder_path = # Insert Path
 # Indices for columns 5, 7, and 8 are 4, 6, and 7
 target_cols = [4, 6, 7]
 results = []

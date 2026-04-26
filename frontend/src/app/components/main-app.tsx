@@ -316,10 +316,10 @@ export function MainApp() {
                     </div>
                     <div className="flex-1 min-h-0">
                       <ResponsiveContainer width="100%" height={220}>
-                        <LineChart data={holdTimeData} margin={{ top: 5, right: 55, bottom: 25, left: 55 }}>
+                        <LineChart data={holdTimeData} margin={{ top: 5, right: 20, bottom: 25, left: 10 }}>
                           <CartesianGrid strokeDasharray="3 3" stroke="rgba(138, 133, 120, 0.1)" vertical={false} />
                           <XAxis dataKey="day" stroke="#8a8578" tick={{ fill: '#8a8578', fontSize: 13 }} tickLine={false} axisLine={{ stroke: 'rgba(138, 133, 120, 0.2)' }} label={{ value: 'Days', position: 'insideBottom', offset: -15, fill: '#8a8578', fontSize: 13 }} />
-                          <YAxis stroke="#8a8578" tick={{ fill: '#8a8578', fontSize: 13 }} tickLine={false} axisLine={false} label={{ value: 'Time (ms)', angle: -90, position: 'insideLeft', offset: 12, fill: '#8a8578', fontSize: 13 }} />
+                          <YAxis width={55} tickFormatter={(v) => Math.round(v)} stroke="#8a8578" tick={{ fill: '#8a8578', fontSize: 12 }} tickLine={false} axisLine={false} label={{ value: 'Time (ms)', angle: -90, position: 'insideLeft', dx: -8, dy: 40, fill: '#8a8578', fontSize: 12 }} />
                           <Line type="monotone" dataKey="value" stroke="#639922" strokeWidth={2.5} dot={false} />
                         </LineChart>
                       </ResponsiveContainer>
@@ -337,10 +337,10 @@ export function MainApp() {
                     </div>
                     <div className="flex-1 min-h-0">
                       <ResponsiveContainer width="100%" height={220}>
-                        <LineChart data={flightTimeData} margin={{ top: 5, right: 55, bottom: 25, left: 55 }}>
+                        <LineChart data={flightTimeData} margin={{ top: 5, right: 20, bottom: 25, left: 10 }}>
                           <CartesianGrid strokeDasharray="3 3" stroke="rgba(138, 133, 120, 0.1)" vertical={false} />
                           <XAxis dataKey="day" stroke="#8a8578" tick={{ fill: '#8a8578', fontSize: 13 }} tickLine={false} axisLine={{ stroke: 'rgba(138, 133, 120, 0.2)' }} label={{ value: 'Days', position: 'insideBottom', offset: -15, fill: '#8a8578', fontSize: 13 }} />
-                          <YAxis stroke="#8a8578" tick={{ fill: '#8a8578', fontSize: 13 }} tickLine={false} axisLine={false} label={{ value: 'Time (ms)', angle: -90, position: 'insideLeft', offset: 12, fill: '#8a8578', fontSize: 13 }} />
+                          <YAxis width={55} tickFormatter={(v) => Math.round(v)} stroke="#8a8578" tick={{ fill: '#8a8578', fontSize: 12 }} tickLine={false} axisLine={false} label={{ value: 'Time (ms)', angle: -90, position: 'insideLeft', dx: -8, dy: 40, fill: '#8a8578', fontSize: 12 }} />
                           <Line type="monotone" dataKey="value" stroke="#639922" strokeWidth={2.5} dot={false} />
                         </LineChart>
                       </ResponsiveContainer>
@@ -358,10 +358,10 @@ export function MainApp() {
                     </div>
                     <div className="flex-1 min-h-0">
                       <ResponsiveContainer width="100%" height={220}>
-                        <LineChart data={latencyTimeData} margin={{ top: 5, right: 55, bottom: 25, left: 55 }}>
+                        <LineChart data={latencyTimeData} margin={{ top: 5, right: 20, bottom: 25, left: 10 }}>
                           <CartesianGrid strokeDasharray="3 3" stroke="rgba(138, 133, 120, 0.1)" vertical={false} />
                           <XAxis dataKey="day" stroke="#8a8578" tick={{ fill: '#8a8578', fontSize: 13 }} tickLine={false} axisLine={{ stroke: 'rgba(138, 133, 120, 0.2)' }} label={{ value: 'Days', position: 'insideBottom', offset: -15, fill: '#8a8578', fontSize: 13 }} />
-                          <YAxis stroke="#8a8578" tick={{ fill: '#8a8578', fontSize: 13 }} tickLine={false} axisLine={false} label={{ value: 'Time (ms)', angle: -90, position: 'insideLeft', offset: 12, fill: '#8a8578', fontSize: 13 }} />
+                          <YAxis width={55} tickFormatter={(v) => Math.round(v)} stroke="#8a8578" tick={{ fill: '#8a8578', fontSize: 12 }} tickLine={false} axisLine={false} label={{ value: 'Time (ms)', angle: -90, position: 'insideLeft', dx: -8, dy: 40, fill: '#8a8578', fontSize: 12 }} />
                           <Line type="monotone" dataKey="value" stroke="#639922" strokeWidth={2.5} dot={false} />
                         </LineChart>
                       </ResponsiveContainer>

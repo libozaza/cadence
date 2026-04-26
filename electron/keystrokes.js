@@ -16,31 +16,32 @@ let prevKeyUpTime = null;
 uIOhook.on('keydown', (event) => {
   if (MODIFIER_KEYS.has(event.keycode)) return;
 
-  const flightTime = prevKeyUpTime !== null ? event.time - prevKeyUpTime : null;
-  const latencyTime = prevKeyDownTime !== null ? event.time - prevKeyDownTime : null;
+  const now = Date.now();
+  const flightTime = prevKeyUpTime !== null ? now - prevKeyUpTime : null;
+  const latencyTime = prevKeyDownTime !== null ? now - prevKeyDownTime : null;
 
-  pending.set(event.keycode, { keyDownTime: event.time, flightTime, latencyTime });
+  pending.set(event.keycode, { keyDownTime: now, flightTime, latencyTime });
 
-  prevKeyDownTime = event.time;
+  prevKeyDownTime = now;
 });
 
 uIOhook.on('keyup', (event) => {
   if (MODIFIER_KEYS.has(event.keycode)) return;
 
+  const now = Date.now();
   const p = pending.get(event.keycode);
   if (!p) return;
   pending.delete(event.keycode);
 
-  prevKeyUpTime = event.time;
+  prevKeyUpTime = now;
 
   if (p.flightTime === null || p.latencyTime === null) return;
 
-  const NS_TO_MS = 1_000_000;
   const evt = {
     timestamp: new Date().toISOString(),
-    hold_time: (event.time - p.keyDownTime) / NS_TO_MS,
-    flight_time: p.flightTime / NS_TO_MS,
-    latency_time: p.latencyTime / NS_TO_MS,
+    hold_time: now - p.keyDownTime,
+    flight_time: p.flightTime,
+    latency_time: p.latencyTime,
   };
   console.log('[keystroke]', evt);
   addEvent(evt);

@@ -1,6 +1,6 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from api import ingest, predict, history, calibration
+from api import ingest, predict, history, calibration, admin
 from services.storage import init_db
 from services.inference import load_model
 from services.calibration import load_calibration_data
@@ -23,6 +23,7 @@ app.include_router(ingest.router)
 app.include_router(predict.router)
 app.include_router(history.router)
 app.include_router(calibration.router)
+app.include_router(admin.router)
 
 
 @app.get("/health")

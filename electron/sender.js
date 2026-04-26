@@ -20,7 +20,7 @@ async function sendBatch() {
   const events = buffer.splice(0, buffer.length);
 
   try {
-    const response = await fetch('http://localhost:8000/ingest', {
+    const response = await fetch('http://127.0.0.1:8000/ingest', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ user_id: USER_ID, events }),

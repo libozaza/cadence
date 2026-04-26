@@ -8,7 +8,8 @@ let apiProcess = null;
 
 function spawnBackend() {
   const backendDir = path.join(__dirname, '..', 'backend');
-  apiProcess = spawn('python', ['-m', 'uvicorn', 'main:app', '--port', '8000'], {
+  const venvPython = path.join(__dirname, '..', 'venv', 'Scripts', 'python.exe');
+  apiProcess = spawn(venvPython, ['-m', 'uvicorn', 'main:app', '--port', '8000'], {
     cwd: backendDir,
     stdio: 'inherit',
   });
@@ -17,7 +18,7 @@ function spawnBackend() {
 async function waitForApi(retries = 20, delayMs = 500) {
   for (let i = 0; i < retries; i++) {
     try {
-      const res = await fetch('http://localhost:8000/health');
+      const res = await fetch('http://127.0.0.1:8000/health');
       if (res.ok) return;
     } catch {}
     await new Promise((r) => setTimeout(r, delayMs));
@@ -26,16 +27,14 @@ async function waitForApi(retries = 20, delayMs = 500) {
 }
 
 app.whenReady().then(async () => {
-  // SMOKE TEST: skip backend + frontend
-  // spawnBackend();
-  // await waitForApi();
+  spawnBackend();
+  await waitForApi();
 
   startFlushTimer();
   startCapture();
 
   const win = new BrowserWindow({ width: 1200, height: 800 });
-  win.loadFile('smoke-test.html');
-  // win.loadURL('http://localhost:3000');
+  win.loadURL('http://localhost:3000');
 });
 
 app.on('before-quit', async (event) => {

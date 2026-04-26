@@ -1,8 +1,8 @@
 import os
-import xgboost as xgb
+import joblib
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.normpath(os.path.join(BASE_DIR, "..", "data", "models", "model.json"))
+MODEL_PATH = os.path.normpath(os.path.join(BASE_DIR, "..", "svm_model.pkl"))
 
 FEATURE_ORDER = [
     "hold_time_mean",
@@ -13,14 +13,13 @@ FEATURE_ORDER = [
     "latency_time_sd",
 ]
 
-_model: xgb.Booster | None = None
+_model = None
 
 
 def load_model() -> None:
     global _model
     if os.path.exists(MODEL_PATH):
-        _model = xgb.Booster()
-        _model.load_model(MODEL_PATH)
+        _model = joblib.load(MODEL_PATH)
 
 
 def is_model_loaded() -> bool:
@@ -32,6 +31,4 @@ def predict(features: dict) -> float:
         return 0.0
 
     values = [[features[f] for f in FEATURE_ORDER]]
-    dmatrix = xgb.DMatrix(values, feature_names=FEATURE_ORDER)
-    score = _model.predict(dmatrix)[0]
-    return float(score)
+    return float(_model.predict(values)[0])

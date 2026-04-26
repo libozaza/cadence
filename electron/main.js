@@ -38,7 +38,8 @@ app.whenReady().then(async () => {
   startCapture();
 
   const win = new BrowserWindow({ width: 1200, height: 800 });
-  win.loadURL(`http://localhost:3000?user_id=${encodeURIComponent(os.hostname())}`);
+  const distIndex = path.join(__dirname, '..', 'frontend', 'dist', 'index.html');
+  win.loadFile(distIndex, { query: { user_id: os.hostname() } });
 });
 
 app.on('before-quit', async (event) => {

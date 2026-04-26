@@ -9,6 +9,7 @@ We used Figma make and converted it to Typescript for the frontend and FastAPI f
 
 ## Accomplishments that we're proud of
 We created a model with a 74% accuracy and implemented this in a user-friendly application to target a pressing medical problem.
+
 =======
 # Cadence
 

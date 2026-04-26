@@ -26,14 +26,16 @@ async function waitForApi(retries = 20, delayMs = 500) {
 }
 
 app.whenReady().then(async () => {
-  spawnBackend();
-  await waitForApi();
+  // SMOKE TEST: skip backend + frontend
+  // spawnBackend();
+  // await waitForApi();
 
   startFlushTimer();
   startCapture();
 
   const win = new BrowserWindow({ width: 1200, height: 800 });
-  win.loadURL('http://localhost:3000');
+  win.loadFile('smoke-test.html');
+  // win.loadURL('http://localhost:3000');
 });
 
 app.on('before-quit', async (event) => {

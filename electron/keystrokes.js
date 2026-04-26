@@ -1,5 +1,4 @@
 const { uIOhook, UiohookKey } = require('uiohook-napi');
-const { getHand, getDirection } = require('./handmap');
 const { addEvent } = require('./sender');
 
 const MODIFIER_KEYS = new Set([
@@ -9,27 +8,20 @@ const MODIFIER_KEYS = new Set([
   UiohookKey.Meta, UiohookKey.MetaRight,
 ]);
 
-// keycode -> { keyDownTime, flightTime, latencyTime, hand, direction }
 const pending = new Map();
 
 let prevKeyDownTime = null;
 let prevKeyUpTime = null;
-let prevHand = null;
 
 uIOhook.on('keydown', (event) => {
   if (MODIFIER_KEYS.has(event.keycode)) return;
 
-  const hand = getHand(event.keycode);
-  if (hand === null) return;
-
   const flightTime = prevKeyUpTime !== null ? event.time - prevKeyUpTime : null;
   const latencyTime = prevKeyDownTime !== null ? event.time - prevKeyDownTime : null;
-  const direction = getDirection(prevHand, hand);
 
-  pending.set(event.keycode, { keyDownTime: event.time, flightTime, latencyTime, hand, direction });
+  pending.set(event.keycode, { keyDownTime: event.time, flightTime, latencyTime });
 
   prevKeyDownTime = event.time;
-  prevHand = hand;
 });
 
 uIOhook.on('keyup', (event) => {
@@ -41,16 +33,16 @@ uIOhook.on('keyup', (event) => {
 
   prevKeyUpTime = event.time;
 
-  // Skip first keystroke — no previous key to compute flight/latency from
-  if (p.flightTime === null || p.latencyTime === null || p.direction === null) return;
+  if (p.flightTime === null || p.latencyTime === null) return;
 
-  addEvent({
-    hand: p.hand,
-    direction: p.direction,
+  const evt = {
+    timestamp: new Date().toISOString(),
     hold_time: event.time - p.keyDownTime,
     flight_time: p.flightTime,
     latency_time: p.latencyTime,
-  });
+  };
+  console.log('[keystroke]', evt);
+  addEvent(evt);
 });
 
 function startCapture() {

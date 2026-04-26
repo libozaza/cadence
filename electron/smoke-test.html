@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Cadence — Smoke Test</title>
+  <style>
+    body { font-family: sans-serif; background: #1a1a2e; color: #eee; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+    h1 { color: #00d4aa; }
+    #log { margin-top: 20px; font-size: 13px; background: #0f3460; padding: 16px; border-radius: 8px; width: 600px; height: 300px; overflow-y: auto; }
+    .entry { border-bottom: 1px solid #1a4a7a; padding: 4px 0; }
+  </style>
+</head>
+<body>
+  <h1>Cadence — Smoke Test</h1>
+  <p>Electron is running. Type anything to verify keystroke capture.</p>
+  <div id="log"></div>
+  <script>
+    const log = document.getElementById('log');
+    let count = 0;
+    window.addEventListener('keydown', (e) => {
+      count++;
+      const el = document.createElement('div');
+      el.className = 'entry';
+      el.textContent = `[${count}] keydown — key: ${e.key}  code: ${e.code}`;
+      log.prepend(el);
+    });
+  </script>
+</body>
+</html>
